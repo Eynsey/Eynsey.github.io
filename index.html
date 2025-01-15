@@ -40,8 +40,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const newsButton = document.getElementById('news-button');
             const weatherButton = document.getElementById('weather-button');
-            const weatherLocations = ['London', 'New York', 'Tokyo', 'Sydney', 'Paris'];
-            const newsApiKey = '8dbca0fccfe44510857618a7ea4ed76b';
+            const newsApiKey = '9b51824fffa84e6fa2cbf88ce8222fea';
+            const weatherLocations = [
+            'London', 'New York', 'Tokyo', 'Sydney', 'Paris',
+            'Berlin', 'Madrid', 'Rome', 'Toronto', 'Dubai',
+            'Singapore', 'Los Angeles', 'San Francisco', 'Moscow', 'Beijing',
+            'Rio de Janeiro', 'Cape Town', 'Bangkok', 'Mumbai', 'Seoul'
+            ];            
 
             function fetchNews(city) {
                 fetch(`https://newsapi.org/v2/everything?q=${city}&apiKey=${newsApiKey}`)
