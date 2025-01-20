@@ -22,7 +22,7 @@
             <section id="news-section" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold mb-4">Latest News</h2>
                 <div id="news" class="text-lg mb-4"></div>
-                <button id="news-button" class="bg-blue-500 text-white px-4 py-2 rounded">Get Random News</button>
+                <button id="news-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Random News</button>
             </section>
             <section id="weather-section" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold mb-4">Weather</h2>
@@ -32,7 +32,7 @@
                     <div id="description" class="mb-2"></div>
                     <img id="weather-icon" src="" alt="Weather icon" class="w-16 h-16">
                 </div>
-                <button id="weather-button" class="bg-blue-500 text-white px-4 py-2 rounded">Get Random Weather</button>
+                <button id="weather-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Random Weather</button>
             </section>
         </main>
     </div>
@@ -42,8 +42,8 @@
             const newsButton = document.getElementById('news-button');
             const weatherButton = document.getElementById('weather-button');
             const newsTopics = ['technology', 'sports', 'health', 'business', 'entertainment'];
-            const gnewsApiKey = 'YOUR_GNEWS_API_KEY'; // Replace with your GNews API key
-            const openWeatherApiKey = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your OpenWeatherMap API key
+            const gnewsApiKey = 'cff96e765a68b6404b2dbfdb618c5cfd';
+            const openWeatherApiKey = '746d7775e9bb84142c7321714b2511bc';
 
             function fetchNews(topic) {
                 const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${gnewsApiKey}`;
@@ -56,7 +56,7 @@
                             const newsContainer = document.getElementById('news');
                             newsContainer.innerHTML = '';
                             articles.forEach(article => {
-                                const articleElement = document.createElement('div');
+                                const articleElement = document.createElement('article');
                                 articleElement.classList.add('mb-4');
                                 articleElement.innerHTML = `
                                     <h3 class="font-bold">${article.title}</h3>
@@ -71,7 +71,10 @@
                             newsContainer.innerHTML = '<p>No news articles available.</p>';
                         }
                     })
-                    .catch(error => console.error('Error fetching news:', error));
+                    .catch(error => {
+                        console.error('Error fetching news:', error);
+                        document.getElementById('news').innerHTML = '<p>Error fetching news.</p>';
+                    });
             }
 
             function fetchWeather(city) {
@@ -97,15 +100,18 @@
                             document.getElementById('weather').innerHTML = '<p>Weather data not available.</p>';
                         }
                     })
-                    .catch(error => console.error('Error fetching weather:', error));
+                    .catch(error => {
+                        console.error('Error fetching weather:', error);
+                        document.getElementById('weather').innerHTML = '<p>Error fetching weather.</p>';
+                    });
             }
 
             function fetchRandomCity() {
                 fetch('https://randomuser.me/api/')
                     .then(response => response.json())
                     .then(data => {
-                        const city = data.results[0].location.city; // Extract city from the random user data
-                        fetchWeather(city); // Fetch weather for the random city
+                        const city = data.results[0].location.city;
+                        fetchWeather(city);
                     })
                     .catch(error => console.error('Error fetching random user:', error));
             }
@@ -116,7 +122,7 @@
             });
 
             weatherButton.addEventListener('click', () => {
-                fetchRandomCity(); // Fetch weather for a random city from randomuser.me
+                fetchRandomCity();
             });
 
             // Initial fetch
