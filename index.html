@@ -45,10 +45,12 @@
             const newsTopics = ['technology', 'sports', 'health', 'business', 'entertainment'];
             const IPT1_GNEWS = 'YOUR_GNEWS_API_KEY';
             const IPT2_OPENMAP = 'YOUR_OPENMAP_API_KEY';
-          //  const gnewsApiKey = IPT1_GNEWS;
+            const gnewsApiKey = 'cff96e765a68b6404b2dbfdb618c5cfd';
+            const apiKey = '746d7775e9bb84142c7321714b2511bc';
+
 
 function fetchNews(topic) {
-    const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${gnewsApiKey}`;
+    const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${IPT1_GNEWS}`;
 
     fetch(url)
         .then(response => response.json())
@@ -77,7 +79,7 @@ function fetchNews(topic) {
 }
 
             function fetchWeather(city) {
-                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${IPT2_OPENMAP}&units=metric`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.cod === 200) {
