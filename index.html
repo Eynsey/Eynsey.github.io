@@ -41,45 +41,41 @@
         document.addEventListener('DOMContentLoaded', () => {
             const newsButton = document.getElementById('news-button');
             const weatherButton = document.getElementById('weather-button');
-            const weatherLocations = ['London', 'New York', 'Tokyo', 'Sydney', 'Paris'];
             const newsTopics = ['technology', 'sports', 'health', 'business', 'entertainment'];
-            const IPT1_GNEWS = 'YOUR_GNEWS_API_KEY';
-            const IPT2_OPENMAP = 'YOUR_OPENMAP_API_KEY';
-            const gnewsApiKey = 'cff96e765a68b6404b2dbfdb618c5cfd';
-            const apiKey = '746d7775e9bb84142c7321714b2511bc';
+            const gnewsApiKey = 'YOUR_GNEWS_API_KEY'; // Replace with your GNews API key
+            const openWeatherApiKey = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your OpenWeatherMap API key
 
+            function fetchNews(topic) {
+                const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${gnewsApiKey}`;
 
-function fetchNews(topic) {
-    const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${gnewsApiKey}`;
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.articles && Array.isArray(data.articles)) {
-                const articles = data.articles.slice(0, 3);
-                const newsContainer = document.getElementById('news');
-                newsContainer.innerHTML = '';
-                articles.forEach(article => {
-                    const articleElement = document.createElement('div');
-                    articleElement.classList.add('mb-4');
-                    articleElement.innerHTML = `
-                        <h3 class="font-bold">${article.title}</h3>
-                        <p>${article.description}</p>
-                        <a href="${article.url}" target="_blank" class="text-blue-500">Read more</a>
-                    `;
-                    newsContainer.appendChild(articleElement);
-                });
-            } else {
-                console.error('No articles found or articles is not an array:', data);
-                const newsContainer = document.getElementById('news');
-                newsContainer.innerHTML = '<p>No news articles available.</p>';
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.articles && Array.isArray(data.articles)) {
+                            const articles = data.articles.slice(0, 3);
+                            const newsContainer = document.getElementById('news');
+                            newsContainer.innerHTML = '';
+                            articles.forEach(article => {
+                                const articleElement = document.createElement('div');
+                                articleElement.classList.add('mb-4');
+                                articleElement.innerHTML = `
+                                    <h3 class="font-bold">${article.title}</h3>
+                                    <p>${article.description}</p>
+                                    <a href="${article.url}" target="_blank" class="text-blue-500">Read more</a>
+                                `;
+                                newsContainer.appendChild(articleElement);
+                            });
+                        } else {
+                            console.error('No articles found or articles is not an array:', data);
+                            const newsContainer = document.getElementById('news');
+                            newsContainer.innerHTML = '<p>No news articles available.</p>';
+                        }
+                    })
+                    .catch(error => console.error('Error fetching news:', error));
             }
-        })
-        .catch(error => console.error('Error fetching news:', error));
-}
 
             function fetchWeather(city) {
-                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${openWeatherApiKey}&units=metric`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.cod === 200) {
@@ -104,18 +100,27 @@ function fetchNews(topic) {
                     .catch(error => console.error('Error fetching weather:', error));
             }
 
+            function fetchRandomCity() {
+                fetch('https://randomuser.me/api/')
+                    .then(response => response.json())
+                    .then(data => {
+                        const city = data.results[0].location.city; // Extract city from the random user data
+                        fetchWeather(city); // Fetch weather for the random city
+                    })
+                    .catch(error => console.error('Error fetching random user:', error));
+            }
+
             newsButton.addEventListener('click', () => {
                 const randomTopic = newsTopics[Math.floor(Math.random() * newsTopics.length)];
                 fetchNews(randomTopic);
             });
 
             weatherButton.addEventListener('click', () => {
-                const randomCity = weatherLocations[Math.floor(Math.random() * weatherLocations.length)];
-                fetchWeather(randomCity);
+                fetchRandomCity(); // Fetch weather for a random city from randomuser.me
             });
 
             // Initial fetch
-            fetchWeather('London');
+            fetchWeather('Milan'); // Example: London coordinates
         });
     </script>
 </body>
