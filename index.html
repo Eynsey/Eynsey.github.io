@@ -1,10 +1,11 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>News and Weather</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -21,7 +22,7 @@
             <section id="news-section" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold mb-4">Latest News</h2>
                 <div id="news" class="text-lg mb-4"></div>
-                <button id="news-button" class="bg-blue-500 text-white px-4 py-2 rounded">Get Latest News</button>
+                <button id="news-button" class="bg-blue-500 text-white px-4 py-2 rounded">Get Random News</button>
             </section>
             <section id="weather-section" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold mb-4">Weather</h2>
@@ -31,7 +32,7 @@
                     <div id="description" class="mb-2"></div>
                     <img id="weather-icon" src="" alt="Weather icon" class="w-16 h-16">
                 </div>
-                <button id="weather-button" class="bg-blue-500 text-white px-4 py-2 rounded">Change Location</button>
+                <button id="weather-button" class="bg-blue-500 text-white px-4 py-2 rounded">Get Random Weather</button>
             </section>
         </main>
     </div>
@@ -40,60 +41,72 @@
         document.addEventListener('DOMContentLoaded', () => {
             const newsButton = document.getElementById('news-button');
             const weatherButton = document.getElementById('weather-button');
-            const newsApiKey = '9b51824fffa84e6fa2cbf88ce8222fea';
-            const weatherLocations = [
-            'London', 'New York', 'Tokyo', 'Sydney', 'Paris',
-            'Berlin', 'Madrid', 'Rome', 'Toronto', 'Dubai',
-            'Singapore', 'Los Angeles', 'San Francisco', 'Moscow', 'Beijing',
-            'Rio de Janeiro', 'Cape Town', 'Bangkok', 'Mumbai', 'Seoul'
-            ];            
+            const weatherLocations = ['London', 'New York', 'Tokyo', 'Sydney', 'Paris'];
+            const newsTopics = ['technology', 'sports', 'health', 'business', 'entertainment'];
+            const IPT1_GNEWS = 'IPT1_GNEWS';
+            const IPT2_OPENMAP = 'IPT1_OPENMAP';
+            const gnewsApiKey = 'cff96e765a68b6404b2dbfdb618c5cfd';
+            const apiKey = '746d7775e9bb84142c7321714b2511bc';
 
-            function fetchNews(city) {
-                fetch(`https://newsapi.org/v2/everything?q=${city}&apiKey=${newsApiKey}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const articles = data.articles.slice(0, 5); // Get the first 5 articles
-                        const newsContainer = document.getElementById('news');
-                        newsContainer.innerHTML = '';
-                        articles.forEach(article => {
-                            const articleElement = document.createElement('div');
-                            articleElement.classList.add('mb-4');
-                            articleElement.innerHTML = `
-                                <h3 class="font-bold">${article.title}</h3>
-                                <p>${article.description}</p>
-                                <a href="${article.url}" target="_blank" class="text-blue-500">Read more</a>
-                            `;
-                            newsContainer.appendChild(articleElement);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching news:', error));
+
+function fetchNews(topic) {
+    const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${gnewsApiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.articles && Array.isArray(data.articles)) {
+                const articles = data.articles.slice(0, 3);
+                const newsContainer = document.getElementById('news');
+                newsContainer.innerHTML = '';
+                articles.forEach(article => {
+                    const articleElement = document.createElement('div');
+                    articleElement.classList.add('mb-4');
+                    articleElement.innerHTML = `
+                        <h3 class="font-bold">${article.title}</h3>
+                        <p>${article.description}</p>
+                        <a href="${article.url}" target="_blank" class="text-blue-500">Read more</a>
+                    `;
+                    newsContainer.appendChild(articleElement);
+                });
+            } else {
+                console.error('No articles found or articles is not an array:', data);
+                const newsContainer = document.getElementById('news');
+                newsContainer.innerHTML = '<p>No news articles available.</p>';
             }
+        })
+        .catch(error => console.error('Error fetching news:', error));
+}
 
             function fetchWeather(city) {
-                const apiKey = '746d7775e9bb84142c7321714b2511bc';
                 fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
                     .then(response => response.json())
                     .then(data => {
-                        const location = data.name;
-                        const temperature = data.main.temp;
-                        const description = data.weather[0].description;
-                        const icon = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                        if (data.cod === 200) {
+                            const location = data.name;
+                            const temperature = data.main.temp;
+                            const description = data.weather[0].description;
+                            const icon = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
 
-                        document.getElementById('location').innerText = location;
-                        document.getElementById('temperature').innerText = `Temperature: ${temperature}°C`;
-                        document.getElementById('description').innerText = `Description: ${description}`;
-                        document.getElementById('weather-icon').src = icon;
-                        document.getElementById('weather-icon').alt = `Weather icon showing ${description}`;
+                            document.getElementById('location').innerText = location;
+                            document.getElementById('temperature').innerText = `Temperature: ${temperature}°C`;
+                            document.getElementById('description').innerText = `Description: ${description}`;
+                            document.getElementById('weather-icon').src = icon;
+                            document.getElementById('weather-icon').alt = `Weather icon showing ${description}`;
 
-                        // Fetch news for the same city
-                        fetchNews(location);
+                            // Fetch news for the same city
+                            fetchNews(location);
+                        } else {
+                            console.error('Error fetching weather:', data);
+                            document.getElementById('weather').innerHTML = '<p>Weather data not available.</p>';
+                        }
                     })
                     .catch(error => console.error('Error fetching weather:', error));
             }
 
             newsButton.addEventListener('click', () => {
-                const currentCity = document.getElementById('location').innerText;
-                fetchNews(currentCity);
+                const randomTopic = newsTopics[Math.floor(Math.random() * newsTopics.length)];
+                fetchNews(randomTopic);
             });
 
             weatherButton.addEventListener('click', () => {
