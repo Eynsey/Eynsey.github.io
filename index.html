@@ -68,6 +68,19 @@
     .prayer-item:last-child {
       border-bottom: none;
     }
+    .edit-btn {
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      margin-top: 5px;
+      font-size: 0.85em;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit-btn:hover {
+      background-color: #2980b9;
+    }
     @media (max-width: 600px) {
       form, #prayerList {
         width: 95%;
@@ -104,15 +117,52 @@
     const errorMessage = document.getElementById('errorMessage');
     const requestsContainer = document.getElementById('requestsContainer');
 
-    const prayerMap = new Map();
+    let prayerMap = new Map();
+
+    function saveToStorage() {
+      const obj = Object.fromEntries(prayerMap);
+      localStorage.setItem('prayers', JSON.stringify(obj));
+    }
+
+    function loadFromStorage() {
+      const data = JSON.parse(localStorage.getItem('prayers')) || {};
+      prayerMap = new Map(Object.entries(data));
+    }
 
     function renderRequests() {
       requestsContainer.innerHTML = '';
       prayerMap.forEach((requests, name) => {
         const prayerItem = document.createElement('div');
         prayerItem.classList.add('prayer-item');
-        const combinedRequests = requests.map(r => `<li>${r}</li>`).join('');
-        prayerItem.innerHTML = `<strong>${name}</strong>:<ul>${combinedRequests}</ul>`;
+
+        const list = document.createElement('ul');
+        requests.forEach((r, i) => {
+          const listItem = document.createElement('li');
+          const textSpan = document.createElement('span');
+          textSpan.textContent = r;
+          listItem.appendChild(textSpan);
+
+          if (localStorage.getItem(`auth-${name}`)) {
+            const editBtn = document.createElement('button');
+            editBtn.classList.add('edit-btn');
+            editBtn.textContent = 'Edit';
+            editBtn.onclick = () => {
+              const newText = prompt('Edit your prayer item:', r);
+              if (newText !== null && newText.trim() !== '') {
+                requests[i] = newText.trim();
+                prayerMap.set(name, requests);
+                saveToStorage();
+                renderRequests();
+              }
+            };
+            listItem.appendChild(editBtn);
+          }
+
+          list.appendChild(listItem);
+        });
+
+        prayerItem.innerHTML = `<strong>${name}</strong>:`;
+        prayerItem.appendChild(list);
         requestsContainer.appendChild(prayerItem);
       });
     }
@@ -121,7 +171,8 @@
       e.preventDefault();
       errorMessage.textContent = '';
 
-      const name = (nameInput.value.trim() || "Anonymous").toLowerCase();
+      const rawName = nameInput.value.trim() || 'Anonymous';
+      const name = rawName.toLowerCase();
       const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
       const request = requestInput.value.trim();
 
@@ -135,9 +186,17 @@
       }
 
       prayerMap.get(formattedName).push(request);
+
+      // Set local edit token for this user
+      localStorage.setItem(`auth-${formattedName}`, 'true');
+
+      saveToStorage();
       renderRequests();
       form.reset();
     });
+
+    loadFromStorage();
+    renderRequests();
   </script>
 
 </body>
