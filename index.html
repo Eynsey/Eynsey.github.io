@@ -1,133 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News and Weather</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Request</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #f0f4ff, #e0ffe0);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    form {
+      margin: 20px auto;
+      max-width: 90%;
+      width: 400px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    button {
+      padding: 12px 20px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #219150;
+    }
+    .error-message {
+      color: red;
+      font-size: 0.9em;
+    }
+    #prayerList {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 90%;
+      width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .prayer-item {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+    .prayer-item:last-child {
+      border-bottom: none;
+    }
+    @media (max-width: 600px) {
+      form, #prayerList {
+        width: 95%;
+        padding: 15px;
+      }
+      input, textarea {
+        font-size: 0.95em;
+      }
+      button {
+        font-size: 0.95em;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <div class="container mx-auto p-4">
-        <header class="text-center my-8">
-            <h1 class="text-4xl font-bold">News and Weather</h1>
-        </header>
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <section id="news-section" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold mb-4">Latest News</h2>
-                <div id="news" class="text-lg mb-4"></div>
-                <button id="news-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">More News</button>
-            </section>
-            <section id="weather-section" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold mb-4">Weather</h2>
-                <div id="weather" class="text-lg mb-4">
-                    <div id="location" class="font-bold text-xl mb-2"></div>
-                    <div id="temperature" class="mb-2"></div>
-                    <div id="description" class="mb-2"></div>
-                    <img id="weather-icon" src="" alt="Weather icon" class="w-16 h-16">
-                </div>
-                <button id="weather-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New City</button>
-            </section>
-        </main>
-    </div>
+<body>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const newsButton = document.getElementById('news-button');
-            const weatherButton = document.getElementById('weather-button');
-            const newsTopics = ['technology', 'sports', 'health', 'business', 'entertainment'];
-            const gnewsApiKey = '';
-            const openWeatherApiKey = '';
+  <h1>Submit a Prayer Request</h1>
+  <form id="prayerForm">
+    <input type="text" id="name" placeholder="Your Name (optional)">
+    <textarea id="request" placeholder="Your Prayer Request" required></textarea>
+    <div id="errorMessage" class="error-message"></div>
+    <button type="submit">Submit</button>
+  </form>
 
-            function fetchNews(topic) {
-                const url = `https://gnews.io/api/v4/search?q=${topic}&lang=en&country=us&max=10&apikey=${gnewsApiKey}`;
+  <div id="prayerList">
+    <h2>People's Prayer List</h2>
+    <div id="requestsContainer"></div>
+  </div>
 
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.articles && Array.isArray(data.articles)) {
-                            const articles = data.articles.slice(0, 3);
-                            const newsContainer = document.getElementById('news');
-                            newsContainer.innerHTML = '';
-                            articles.forEach(article => {
-                                const articleElement = document.createElement('article');
-                                articleElement.classList.add('mb-4');
-                                articleElement.innerHTML = `
-                                    <h3 class="font-bold">${article.title}</h3>
-                                    <p>${article.description}</p>
-                                    <a href="${article.url}" target="_blank" class="text-blue-500">Read more</a>
-                                `;
-                                newsContainer.appendChild(articleElement);
-                            });
-                        } else {
-                            console.error('No articles found or articles is not an array:', data);
-                            const newsContainer = document.getElementById('news');
-                            newsContainer.innerHTML = '<p>No news articles available.</p>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching news:', error);
-                        document.getElementById('news').innerHTML = '<p>Error fetching news.</p>';
-                    });
-            }
+  <script>
+    const form = document.getElementById('prayerForm');
+    const nameInput = document.getElementById('name');
+    const requestInput = document.getElementById('request');
+    const errorMessage = document.getElementById('errorMessage');
+    const requestsContainer = document.getElementById('requestsContainer');
 
-            function fetchWeather(city) {
-                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${openWeatherApiKey}&units=metric`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.cod === 200) {
-                            const location = data.name;
-                            const temperature = data.main.temp;
-                            const description = data.weather[0].description;
-                            const icon = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+    const prayerMap = new Map();
 
-                            document.getElementById('location').innerText = location;
-                            document.getElementById('temperature').innerText = `Temperature: ${temperature}°C`;
-                            document.getElementById('description').innerText = `Description: ${description}`;
-                            document.getElementById('weather-icon').src = icon;
-                            document.getElementById('weather-icon').alt = `Weather icon showing ${description}`;
+    function renderRequests() {
+      requestsContainer.innerHTML = '';
+      prayerMap.forEach((requests, name) => {
+        const prayerItem = document.createElement('div');
+        prayerItem.classList.add('prayer-item');
+        const combinedRequests = requests.map(r => `<li>${r}</li>`).join('');
+        prayerItem.innerHTML = `<strong>${name}</strong>:<ul>${combinedRequests}</ul>`;
+        requestsContainer.appendChild(prayerItem);
+      });
+    }
 
-                            // Fetch news for the same city
-                            fetchNews(location);
-                        } else {
-                            console.error('Error fetching weather:', data);
-                            document.getElementById('weather').innerHTML = '<p>Weather data not available.</p>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching weather:', error);
-                        document.getElementById('weather').innerHTML = '<p>Error fetching weather.</p>';
-                    });
-            }
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      errorMessage.textContent = '';
 
-            function fetchRandomCity() {
-                fetch('https://randomuser.me/api/')
-                    .then(response => response.json())
-                    .then(data => {
-                        const city = data.results[0].location.city;
-                        fetchWeather(city);
-                    })
-                    .catch(error => console.error('Error fetching random user:', error));
-            }
+      const name = (nameInput.value.trim() || "Anonymous").toLowerCase();
+      const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+      const request = requestInput.value.trim();
 
-            newsButton.addEventListener('click', () => {
-                const randomTopic = newsTopics[Math.floor(Math.random() * newsTopics.length)];
-                fetchNews(randomTopic);
-            });
+      if (request === '') {
+        errorMessage.textContent = 'Prayer request cannot be empty.';
+        return;
+      }
 
-            weatherButton.addEventListener('click', () => {
-                fetchRandomCity();
-            });
+      if (!prayerMap.has(formattedName)) {
+        prayerMap.set(formattedName, []);
+      }
 
-            // Initial fetch
-            fetchWeather('Manila');
-        });
-    </script>
+      prayerMap.get(formattedName).push(request);
+      renderRequests();
+      form.reset();
+    });
+  </script>
+
 </body>
 </html>
