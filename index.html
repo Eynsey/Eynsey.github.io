@@ -19,7 +19,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       color: white;
       display: flex;
       justify-content: center;
@@ -28,6 +28,11 @@
       flex-direction: column;
       padding: 20px;
       text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     #introOverlay button {
       margin-top: 20px;
@@ -38,6 +43,10 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 1em;
+      transition: background 0.3s;
+    }
+    #introOverlay button:hover {
+      background: #1e864c;
     }
     h1, h2 {
       color: #2c3e50;
@@ -54,6 +63,7 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
     }
     input, textarea {
       width: 100%;
@@ -64,6 +74,11 @@
       font-size: 1em;
       resize: none;
       box-sizing: border-box;
+      transition: border 0.3s;
+    }
+    input:focus, textarea:focus {
+      border: 1px solid #27ae60;
+      outline: none;
     }
     textarea {
       resize: none;
@@ -109,6 +124,7 @@
       border-radius: 8px;
       margin-bottom: 10px;
       position: relative;
+      animation: fadeIn 0.5s ease-in-out;
     }
     .prayer-item:nth-child(even) {
       margin-left: 4%;
@@ -130,8 +146,7 @@
       right: 10px;
       color: red;
       cursor: pointer;
-      font-size: 0.8em;
-      display: inline;
+      font-size: 1.2em;
       z-index: 1000;
     }
     .dark-mode {
@@ -177,144 +192,35 @@
       }
       .prayer-item {
         width: 100%;
-        margin-left: 0;
+        margin-left: 0 !important;
+      }
+      .delete-button {
+        font-size: 1.5em;
       }
     }
   </style>
+  <script>
+    const verses = [
+      "Pray without ceasing. - 1 Thessalonians 5:17",
+      "The prayer of a righteous person is powerful and effective. - James 5:16",
+      "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. - Philippians 4:6",
+      "And whatever you ask in prayer, you will receive, if you have faith. - Matthew 21:22",
+      "Above all, love each other deeply, because love covers over a multitude of sins. - 1 Peter 4:8"
+    ];
+    window.onload = () => {
+      const verse = verses[Math.floor(Math.random() * verses.length)];
+      const overlay = document.getElementById('introOverlay');
+      const verseElement = document.getElementById('verseOfTheDay');
+      verseElement.innerText = verse;
+    }
+  </script>
 </head>
 <body>
   <div id="introOverlay">
-    <h1>Welcome to the Prayer Request Wall</h1>
-    <p>Prayer is a way for us to connect with God and each other. It's a moment of reflection, hope, and unity. By sharing your prayer, you invite others to stand with you in faith.</p>
-    <button onclick="document.getElementById('introOverlay').style.display='none'">Continue</button>
+    <h1>Welcome to the Prayer Request Page</h1>
+    <p>Prayer connects us to God and one another. Through faith, love, and hope, we lift each other up.</p>
+    <p id="verseOfTheDay"></p>
+    <button onclick="document.getElementById('introOverlay').style.display='none'">Enter</button>
   </div>
-
-  <button class="dark-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
-
-  <h1 id="title">Submit a Prayer Request</h1>
-  <form id="prayerForm">
-    <input type="text" id="name" placeholder="Your Name (optional)" maxlength="50">
-    <textarea id="request" rows="4" placeholder="Write your prayer request here..." required maxlength="500"></textarea>
-    <div id="errorMessage" class="error-message"></div>
-    <button type="submit">Submit</button>
-  </form>
-
-  <div id="prayerList">
-    <h2 style="display: flex; justify-content: space-between; align-items: center;">
-      <span id="listTitle">People's Prayer List</span>
-      <span id="statsPanel"></span>
-    </h2>
-    <div id="requestsContainer"></div>
-  </div>
-
-  <script>
-    const form = document.getElementById('prayerForm');
-    const nameInput = document.getElementById('name');
-    const requestInput = document.getElementById('request');
-    const errorMessage = document.getElementById('errorMessage');
-    const requestsContainer = document.getElementById('requestsContainer');
-    const statsPanel = document.getElementById('statsPanel');
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-    }
-
-    function getStoredRequests() {
-      return JSON.parse(localStorage.getItem('prayerRequests') || '[]');
-    }
-
-    function storeRequests(requests) {
-      localStorage.setItem('prayerRequests', JSON.stringify(requests));
-    }
-
-    function deleteRequest(index) {
-      const password = prompt("Enter admin password to delete:");
-      if (password === "39619812n") {
-        let allRequests = getStoredRequests();
-        allRequests.splice(index, 1);
-        storeRequests(allRequests);
-        renderRequests();
-      } else {
-        alert("Incorrect password.");
-      }
-    }
-
-    function renderRequests() {
-      const allRequests = getStoredRequests();
-      const userSet = new Set();
-      let totalHearts = 0;
-      let totalPrayers = 0;
-      requestsContainer.innerHTML = '';
-
-      allRequests.forEach((entry, index) => {
-        const { name, text, time, heartCount = 0, prayerCount = 0 } = entry;
-        userSet.add(name);
-        totalHearts += heartCount;
-        totalPrayers += prayerCount;
-
-        const prayerItem = document.createElement('div');
-        prayerItem.classList.add('prayer-item');
-        prayerItem.innerHTML = `
-          <strong>${name}</strong> <small>(${time})</small><br>
-          <li>${text}</li>
-          <div class="reaction-buttons">
-            <button class="heart-btn">❤️</button><span class="counts"> ${heartCount}</span>
-            <button class="prayer-btn">🙏</button><span class="counts"> ${prayerCount}</span>
-          </div>
-          <span class="delete-button" title="Delete this prayer">✖</span>
-        `;
-
-        prayerItem.querySelector('.heart-btn').addEventListener('click', () => addReaction(index, 'heart'));
-        prayerItem.querySelector('.prayer-btn').addEventListener('click', () => addReaction(index, 'prayer'));
-        prayerItem.querySelector('.delete-button').addEventListener('click', () => deleteRequest(index));
-
-        requestsContainer.insertBefore(prayerItem, requestsContainer.firstChild);
-      });
-
-      statsPanel.textContent = `Total Prayers: ${allRequests.length} | Unique Users: ${userSet.size} | ❤️: ${totalHearts} | 🙏: ${totalPrayers}`;
-    }
-
-    function addReaction(index, type) {
-      const allRequests = getStoredRequests();
-      if (type === 'heart') allRequests[index].heartCount = (allRequests[index].heartCount || 0) + 1;
-      if (type === 'prayer') allRequests[index].prayerCount = (allRequests[index].prayerCount || 0) + 1;
-      storeRequests(allRequests);
-      renderRequests();
-    }
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      errorMessage.textContent = '';
-
-      const name = (nameInput.value.trim() || "Anonymous");
-      const request = requestInput.value.trim();
-
-      if (request === '') {
-        errorMessage.textContent = 'Prayer request cannot be empty.';
-        return;
-      }
-
-      const now = new Date();
-      const timestamp = now.toLocaleString();
-
-      const newEntry = { name, text: request, time: timestamp, heartCount: 0, prayerCount: 0 };
-      const allRequests = getStoredRequests();
-      allRequests.push(newEntry);
-      storeRequests(allRequests);
-
-      renderRequests();
-      form.reset();
-
-      alert('Prayer submitted successfully!');
-    });
-
-    window.onload = () => {
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-      }
-      renderRequests();
-    };
-  </script>
 </body>
 </html>
