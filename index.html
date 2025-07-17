@@ -73,7 +73,12 @@
       background: #fafafa;
     }
 
-    textarea::placeholder {
+    textarea {
+      resize: none;
+      height: 100px;
+    }
+
+    input::placeholder, textarea::placeholder {
       color: #aaa;
     }
 
@@ -159,7 +164,7 @@
   <h1>Submit a Prayer Request</h1>
   <form id="prayerForm">
     <input type="text" id="name" placeholder="Your Name (optional)">
-    <textarea id="request" placeholder="Your Prayer Request" required></textarea>
+    <textarea id="request" placeholder="Write your prayer request here..." required></textarea>
     <div id="errorMessage" class="error-message"></div>
     <button type="submit">Submit</button>
   </form>
@@ -279,8 +284,11 @@
         reactions: 0
       };
 
-      db.ref('prayers').push(newEntry);
-      form.reset();
+      db.ref('prayers').push(newEntry).then(() => {
+        form.reset();
+      }).catch(err => {
+        errorMessage.textContent = 'Error submitting request. Please try again.';
+      });
     });
   </script>
 </body>
