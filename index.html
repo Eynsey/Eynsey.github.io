@@ -33,6 +33,7 @@
       border-radius: 6px;
       font-size: 1em;
       resize: none;
+      box-sizing: border-box;
     }
     button {
       padding: 12px 20px;
@@ -99,6 +100,11 @@
       border-radius: 6px;
       cursor: pointer;
     }
+    #statsPanel {
+      margin-top: 20px;
+      padding: 10px;
+      font-weight: bold;
+    }
     @media (max-width: 600px) {
       form, #prayerList {
         width: 95%;
@@ -128,6 +134,7 @@
   <div id="prayerList">
     <h2>People's Prayer List</h2>
     <div id="requestsContainer"></div>
+    <div id="statsPanel"></div>
   </div>
 
   <script>
@@ -136,38 +143,47 @@
     const requestInput = document.getElementById('request');
     const errorMessage = document.getElementById('errorMessage');
     const requestsContainer = document.getElementById('requestsContainer');
-
-    const prayerMap = new Map();
+    const statsPanel = document.getElementById('statsPanel');
 
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
     }
 
+    function getStoredRequests() {
+      return JSON.parse(localStorage.getItem('prayerRequests') || '[]');
+    }
+
+    function storeRequests(requests) {
+      localStorage.setItem('prayerRequests', JSON.stringify(requests));
+    }
+
     function renderRequests() {
+      const allRequests = getStoredRequests();
+      const userSet = new Set();
       requestsContainer.innerHTML = '';
-      prayerMap.forEach((requests, name) => {
+
+      allRequests.forEach(({ name, text, time }) => {
+        userSet.add(name);
         const prayerItem = document.createElement('div');
         prayerItem.classList.add('prayer-item');
-
-        const combinedRequests = requests.map(r => `<li>${r.text} <small>(${r.time})</small></li>`).join('');
         prayerItem.innerHTML = `
-          <strong>${name}</strong>:
-          <ul>${combinedRequests}</ul>
+          <strong>${name}</strong>:<br>
+          <li>${text} <small>(${time})</small></li>
           <div class="reaction-buttons">
             <button onclick="alert('❤️ Prayed!')">❤️</button>
             <button onclick="alert('🙏 Lifted in Prayer!')">🙏</button>
           </div>`;
-
         requestsContainer.appendChild(prayerItem);
       });
+
+      statsPanel.textContent = `Total Prayers: ${allRequests.length} | Unique Users: ${userSet.size}`;
     }
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       errorMessage.textContent = '';
 
-      const name = (nameInput.value.trim() || "Anonymous").toLowerCase();
-      const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+      const name = (nameInput.value.trim() || "Anonymous");
       const request = requestInput.value.trim();
 
       if (request === '') {
@@ -178,14 +194,17 @@
       const now = new Date();
       const timestamp = now.toLocaleString();
 
-      if (!prayerMap.has(formattedName)) {
-        prayerMap.set(formattedName, []);
-      }
+      const newEntry = { name, text: request, time: timestamp };
+      const allRequests = getStoredRequests();
+      allRequests.push(newEntry);
+      storeRequests(allRequests);
 
-      prayerMap.get(formattedName).push({ text: request, time: timestamp });
       renderRequests();
       form.reset();
     });
+
+    // Render on load
+    renderRequests();
   </script>
 
 </body>
