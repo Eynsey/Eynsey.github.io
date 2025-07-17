@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prayer Request</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -96,7 +99,6 @@
   </style>
 </head>
 <body>
-
   <h1>Submit a Prayer Request</h1>
   <form id="prayerForm">
     <input type="text" id="name" placeholder="Your Name (optional)">
@@ -111,48 +113,59 @@
   </div>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAP13ca_A_u1zuwTHi-4Kfd8AyO_7gjfgI",
+      authDomain: "pray-eb2b0.firebaseapp.com",
+      projectId: "pray-eb2b0",
+      storageBucket: "pray-eb2b0.firebasestorage.app",
+      messagingSenderId: "84874820473",
+      appId: "1:84874820473:web:640b90de623d6cbedfcda8"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.database();
+    let currentUser = null;
+
+    firebase.auth().signInAnonymously().then(userCredential => {
+      currentUser = userCredential.user;
+      loadRequests();
+    });
+
     const form = document.getElementById('prayerForm');
     const nameInput = document.getElementById('name');
     const requestInput = document.getElementById('request');
     const errorMessage = document.getElementById('errorMessage');
     const requestsContainer = document.getElementById('requestsContainer');
 
-    let prayerMap = new Map();
-
-    function saveToStorage() {
-      const obj = Object.fromEntries(prayerMap);
-      localStorage.setItem('prayers', JSON.stringify(obj));
-    }
-
-    function loadFromStorage() {
-      const data = JSON.parse(localStorage.getItem('prayers')) || {};
-      prayerMap = new Map(Object.entries(data));
-    }
-
-    function renderRequests() {
+    function renderRequests(snapshot) {
       requestsContainer.innerHTML = '';
-      prayerMap.forEach((requests, name) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      const grouped = {};
+      Object.entries(data).forEach(([key, item]) => {
+        const name = item.name || 'Anonymous';
+        if (!grouped[name]) grouped[name] = [];
+        grouped[name].push({ ...item, key });
+      });
+
+      Object.entries(grouped).forEach(([name, items]) => {
         const prayerItem = document.createElement('div');
         prayerItem.classList.add('prayer-item');
 
         const list = document.createElement('ul');
-        requests.forEach((r, i) => {
+        items.forEach(({ text, uid, key, timestamp }) => {
           const listItem = document.createElement('li');
-          const textSpan = document.createElement('span');
-          textSpan.textContent = r;
-          listItem.appendChild(textSpan);
+          listItem.innerHTML = `${text} <br><small>Submitted on ${new Date(timestamp).toLocaleString()}</small>`;
 
-          if (localStorage.getItem(`auth-${name}`)) {
+          if (uid === currentUser.uid) {
             const editBtn = document.createElement('button');
             editBtn.classList.add('edit-btn');
             editBtn.textContent = 'Edit';
             editBtn.onclick = () => {
-              const newText = prompt('Edit your prayer item:', r);
-              if (newText !== null && newText.trim() !== '') {
-                requests[i] = newText.trim();
-                prayerMap.set(name, requests);
-                saveToStorage();
-                renderRequests();
+              const newText = prompt('Edit your prayer item:', text);
+              if (newText && newText.trim()) {
+                db.ref('prayers/' + key).update({ text: newText.trim() });
               }
             };
             listItem.appendChild(editBtn);
@@ -167,13 +180,15 @@
       });
     }
 
+    function loadRequests() {
+      db.ref('prayers').on('value', renderRequests);
+    }
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       errorMessage.textContent = '';
 
-      const rawName = nameInput.value.trim() || 'Anonymous';
-      const name = rawName.toLowerCase();
-      const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+      const name = nameInput.value.trim() || 'Anonymous';
       const request = requestInput.value.trim();
 
       if (request === '') {
@@ -181,23 +196,16 @@
         return;
       }
 
-      if (!prayerMap.has(formattedName)) {
-        prayerMap.set(formattedName, []);
-      }
+      const newEntry = {
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        text: request,
+        uid: currentUser.uid,
+        timestamp: Date.now()
+      };
 
-      prayerMap.get(formattedName).push(request);
-
-      // Set local edit token for this user
-      localStorage.setItem(`auth-${formattedName}`, 'true');
-
-      saveToStorage();
-      renderRequests();
+      db.ref('prayers').push(newEntry);
       form.reset();
     });
-
-    loadFromStorage();
-    renderRequests();
   </script>
-
 </body>
 </html>
