@@ -13,6 +13,32 @@
       text-align: center;
       transition: background 0.3s, color 0.3s;
     }
+    #introOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+      padding: 20px;
+      text-align: center;
+    }
+    #introOverlay button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+    }
     h1, h2 {
       color: #2c3e50;
       transition: color 0.3s;
@@ -157,6 +183,11 @@
   </style>
 </head>
 <body>
+  <div id="introOverlay">
+    <h1>Welcome to the Prayer Request Wall</h1>
+    <p>Prayer is a way for us to connect with God and each other. It's a moment of reflection, hope, and unity. By sharing your prayer, you invite others to stand with you in faith.</p>
+    <button onclick="document.getElementById('introOverlay').style.display='none'">Continue</button>
+  </div>
 
   <button class="dark-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
 
@@ -285,6 +316,5 @@
       renderRequests();
     };
   </script>
-
 </body>
 </html>
