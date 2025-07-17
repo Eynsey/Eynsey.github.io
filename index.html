@@ -8,25 +8,61 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
+    :root {
+      --bg-light: #f0f4ff;
+      --bg-dark: #1a1a2e;
+      --text-light: #2c3e50;
+      --text-dark: #e0e0e0;
+      --card-light: #fff;
+      --card-dark: #333;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom right, #f0f4ff, #e0ffe0);
+      background: var(--bg-light);
       margin: 0;
       padding: 20px;
       text-align: center;
+      color: var(--text-light);
+      transition: background 0.3s, color 0.3s;
     }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
     h1, h2 {
-      color: #2c3e50;
+      margin: 0.5em 0;
     }
+
+    .toggle-theme {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
     form {
       margin: 20px auto;
       max-width: 90%;
       width: 400px;
-      background-color: #fff;
+      background-color: var(--card-light);
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: background 0.3s;
     }
+
+    body.dark form {
+      background-color: var(--card-dark);
+    }
+
     input, textarea {
       width: 100%;
       padding: 12px;
@@ -34,7 +70,13 @@
       border: 1px solid #bbb;
       border-radius: 6px;
       font-size: 1em;
+      background: #fafafa;
     }
+
+    textarea::placeholder {
+      color: #aaa;
+    }
+
     button {
       padding: 12px 20px;
       background-color: #27ae60;
@@ -45,13 +87,16 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
+
     button:hover {
       background-color: #219150;
     }
+
     .error-message {
       color: red;
       font-size: 0.9em;
     }
+
     #prayerList {
       margin-top: 30px;
       text-align: left;
@@ -59,19 +104,27 @@
       width: 600px;
       margin-left: auto;
       margin-right: auto;
-      background: #fff;
+      background: var(--card-light);
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: background 0.3s;
     }
+
+    body.dark #prayerList {
+      background: var(--card-dark);
+    }
+
     .prayer-item {
       border-bottom: 1px solid #eee;
       padding: 10px 0;
     }
+
     .prayer-item:last-child {
       border-bottom: none;
     }
-    .edit-btn {
+
+    .edit-btn, .react-btn {
       background-color: #3498db;
       border: none;
       color: white;
@@ -80,10 +133,13 @@
       font-size: 0.85em;
       border-radius: 4px;
       cursor: pointer;
+      margin-right: 5px;
     }
-    .edit-btn:hover {
+
+    .edit-btn:hover, .react-btn:hover {
       background-color: #2980b9;
     }
+
     @media (max-width: 600px) {
       form, #prayerList {
         width: 95%;
@@ -99,6 +155,7 @@
   </style>
 </head>
 <body>
+  <button class="toggle-theme" onclick="toggleTheme()">🌓 Toggle Theme</button>
   <h1>Submit a Prayer Request</h1>
   <form id="prayerForm">
     <input type="text" id="name" placeholder="Your Name (optional)">
@@ -116,13 +173,14 @@
     const firebaseConfig = {
       apiKey: "AIzaSyAP13ca_A_u1zuwTHi-4Kfd8AyO_7gjfgI",
       authDomain: "pray-eb2b0.firebaseapp.com",
+      databaseURL: "https://pray-eb2b0-default-rtdb.firebaseio.com/",
       projectId: "pray-eb2b0",
-      storageBucket: "pray-eb2b0.firebasestorage.app",
+      storageBucket: "pray-eb2b0.appspot.com",
       messagingSenderId: "84874820473",
       appId: "1:84874820473:web:640b90de623d6cbedfcda8"
     };
-    firebase.initializeApp(firebaseConfig);
 
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let currentUser = null;
 
@@ -136,6 +194,15 @@
     const requestInput = document.getElementById('request');
     const errorMessage = document.getElementById('errorMessage');
     const requestsContainer = document.getElementById('requestsContainer');
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+    }
 
     function renderRequests(snapshot) {
       requestsContainer.innerHTML = '';
@@ -154,9 +221,17 @@
         prayerItem.classList.add('prayer-item');
 
         const list = document.createElement('ul');
-        items.forEach(({ text, uid, key, timestamp }) => {
+        items.forEach(({ text, uid, key, timestamp, reactions = 0 }) => {
           const listItem = document.createElement('li');
           listItem.innerHTML = `${text} <br><small>Submitted on ${new Date(timestamp).toLocaleString()}</small>`;
+
+          const reactBtn = document.createElement('button');
+          reactBtn.classList.add('react-btn');
+          reactBtn.textContent = `🙏 ${reactions}`;
+          reactBtn.onclick = () => {
+            db.ref('prayers/' + key).update({ reactions: reactions + 1 });
+          };
+          listItem.appendChild(reactBtn);
 
           if (uid === currentUser.uid) {
             const editBtn = document.createElement('button');
@@ -200,7 +275,8 @@
         name: name.charAt(0).toUpperCase() + name.slice(1),
         text: request,
         uid: currentUser.uid,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        reactions: 0
       };
 
       db.ref('prayers').push(newEntry);
